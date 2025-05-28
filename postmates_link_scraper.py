@@ -92,10 +92,29 @@ class PostmatesScraper:
 # Example usage
 if __name__ == "__main__":
     locations = [
-        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
-        {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
-        {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
-        {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},
+        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
+        # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
+        # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},
+        {"address": "Harlem, New York City, New York", "latitude": 40.8116, "longitude": -73.9465},
+
+        # Brooklyn
+        {"address": "Downtown Brooklyn, New York City, New York", "latitude": 40.6928, "longitude": -73.9903},
+        {"address": "Williamsburg, Brooklyn, New York", "latitude": 40.7081, "longitude": -73.9571},
+        {"address": "Coney Island, Brooklyn, New York", "latitude": 40.5749, "longitude": -73.9850},
+
+        # Queens
+        {"address": "Flushing, Queens, New York", "latitude": 40.7580, "longitude": -73.8303},
+        {"address": "Astoria, Queens, New York", "latitude": 40.7644, "longitude": -73.9235},
+        {"address": "Jamaica, Queens, New York", "latitude": 40.7027, "longitude": -73.7889},
+
+        # Bronx
+        {"address": "Fordham, Bronx, New York", "latitude": 40.8620, "longitude": -73.8890},
+        {"address": "Riverdale, Bronx, New York", "latitude": 40.9030, "longitude": -73.9126},
+
+        # Staten Island
+        {"address": "St. George, Staten Island, New York", "latitude": 40.6437, "longitude": -74.0736},
+        {"address": "Tottenville, Staten Island, New York", "latitude": 40.5128, "longitude": -74.2512},
     ]
 
     async def run_all():

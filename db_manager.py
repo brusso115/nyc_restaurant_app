@@ -1,4 +1,5 @@
 import psycopg2
+import html
 
 class DatabaseManager:
     def __init__(self, db_config):
@@ -30,9 +31,9 @@ class DatabaseManager:
             ON CONFLICT (restaurant_id, name) DO NOTHING
         """, (
             restaurant_id,
-            section,
-            item.get("name"),
-            item.get("description"),
+            html.unescape(section),
+            html.unescape(item.get("name")),
+            html.unescape(item.get("description")),
             item.get("offers", {}).get("price"),
             item.get("offers", {}).get("priceCurrency")
         ))

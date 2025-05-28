@@ -6,10 +6,13 @@ import time
 import random
 from datetime import datetime
 from db_manager import DatabaseManager
+from vector_manager import VectorManager
+import html
 
 class RestaurantScraper:
-    def __init__(self, db_manager, csv_path="./data/store_links.csv"):
+    def __init__(self, db_manager, vector_manager, csv_path="./data/store_links.csv"):
         self.db = db_manager
+        self.vdb = vector_manager
         self.csv_path = csv_path
 
     def load_links(self):
@@ -43,9 +46,9 @@ class RestaurantScraper:
                     continue
 
                 restaurant = {
-                    "name": data["name"],
+                    "name": html.unescape(data["name"]),
                     "url": link,
-                    "categories": ", ".join(data.get("servesCuisine", [])),
+                    "categories": html.unescape(", ".join(data.get("servesCuisine", []))),
                     "address": data["address"]["streetAddress"],
                     "city": data["address"]["addressLocality"],
                     "region": data["address"]["addressRegion"],
@@ -64,6 +67,10 @@ class RestaurantScraper:
                     for section in data.get("hasMenu", {}).get("hasMenuSection", []):
                         for item in section.get("hasMenuItem", []):
                             self.db.insert_menu_item(restaurant_id, section.get("name"), item)
+                            name = html.unescape(item.get("name", ""))
+                            desc = html.unescape(item.get("description", ""))
+                            if name:
+                                self.vdb.embed_and_store(restaurant_id, name, desc)
                 except Exception as e:
                     print(f"⚠️ Menu item error at {link}: {e}")
 
@@ -79,7 +86,7 @@ class RestaurantScraper:
                 except Exception as e:
                     print(f"⚠️ Opening hours error at {link}: {e}")
 
-                print(f"✅ Inserted {data['name']}")
+                print(f"✅ Inserted {html.unescape(data['name'])}")
                 time.sleep(random.uniform(1.5, 3.0))
 
             except Exception as e:
@@ -99,5 +106,6 @@ if __name__ == "__main__":
         "port": "5432"
     }
     db = DatabaseManager(db_config)
-    scraper = RestaurantScraper(db)
+    vdb = VectorManager()
+    scraper = RestaurantScraper(db, vdb)
     scraper.run()
