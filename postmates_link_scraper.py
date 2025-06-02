@@ -4,13 +4,14 @@ import random
 import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
+from db_manager import DatabaseManager
 
 class PostmatesScraper:
-    def __init__(self, address, latitude, longitude, csv_path="./data/store_links.csv"):
+    def __init__(self, address, latitude, longitude, db_manager):
         self.address = address
         self.latitude = latitude
         self.longitude = longitude
-        self.csv_path = csv_path
+        self.db = db_manager
 
     async def scrape(self):
         async with async_playwright() as p:
@@ -61,12 +62,6 @@ class PostmatesScraper:
         return self.extract_links(html)
 
     def extract_links(self, html):
-        existing_links = set()
-        
-        # Load existing links if CSV exists
-        if os.path.exists(self.csv_path):
-            existing_df = pd.read_csv(self.csv_path)
-            existing_links = set(existing_df["store_link"].dropna())
 
         soup = BeautifulSoup(html, "html.parser")
         new_store_links = []
@@ -75,51 +70,54 @@ class PostmatesScraper:
             href = a.get("href")
             if href and href.startswith("/store/"):
                 full_url = f"https://postmates.com{href.split('?')[0]}"
-                if full_url not in existing_links:
-                    new_store_links.append(full_url)
-                    existing_links.add(full_url)
-
-        # Append only new links
-        if new_store_links:
-            df_new = pd.DataFrame(new_store_links, columns=["store_link"])
-            df_new.to_csv(self.csv_path, mode='a', header=not os.path.exists(self.csv_path), index=False)
-
-        print(f"📍 {self.address}: Found {len(new_store_links)} new links.")
-        return pd.DataFrame(new_store_links, columns=["store_link"])
+                new_store_links.append((full_url, self.address, 'pending'))
 
 
+        self.db.insert_store_links(new_store_links)
+        self.db.commit()
+
+        print(f"📍 {self.address}: Inserted {len(new_store_links)} new links.")
 
 # Example usage
 if __name__ == "__main__":
+
+    db_config = {
+        "dbname": "restaurant_data",
+        "user": "baileyrusso",
+        "host": "localhost",
+        "port": "5432"
+    }
+    db = DatabaseManager(db_config)
+
     locations = [
-        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
         # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},
-        {"address": "Harlem, New York City, New York", "latitude": 40.8116, "longitude": -73.9465},
+        # {"address": "Harlem, New York City, New York", "latitude": 40.8116, "longitude": -73.9465},
 
-        # Brooklyn
-        {"address": "Downtown Brooklyn, New York City, New York", "latitude": 40.6928, "longitude": -73.9903},
-        {"address": "Williamsburg, Brooklyn, New York", "latitude": 40.7081, "longitude": -73.9571},
-        {"address": "Coney Island, Brooklyn, New York", "latitude": 40.5749, "longitude": -73.9850},
+        # # Brooklyn
+        # {"address": "Downtown Brooklyn, New York City, New York", "latitude": 40.6928, "longitude": -73.9903},
+        # {"address": "Williamsburg, Brooklyn, New York", "latitude": 40.7081, "longitude": -73.9571},
+        # {"address": "Coney Island, Brooklyn, New York", "latitude": 40.5749, "longitude": -73.9850},
 
-        # Queens
-        {"address": "Flushing, Queens, New York", "latitude": 40.7580, "longitude": -73.8303},
-        {"address": "Astoria, Queens, New York", "latitude": 40.7644, "longitude": -73.9235},
-        {"address": "Jamaica, Queens, New York", "latitude": 40.7027, "longitude": -73.7889},
+        # # Queens
+        # {"address": "Flushing, Queens, New York", "latitude": 40.7580, "longitude": -73.8303},
+        # {"address": "Astoria, Queens, New York", "latitude": 40.7644, "longitude": -73.9235},
+        # {"address": "Jamaica, Queens, New York", "latitude": 40.7027, "longitude": -73.7889},
 
-        # Bronx
-        {"address": "Fordham, Bronx, New York", "latitude": 40.8620, "longitude": -73.8890},
-        {"address": "Riverdale, Bronx, New York", "latitude": 40.9030, "longitude": -73.9126},
+        # # Bronx
+        # {"address": "Fordham, Bronx, New York", "latitude": 40.8620, "longitude": -73.8890},
+        # {"address": "Riverdale, Bronx, New York", "latitude": 40.9030, "longitude": -73.9126},
 
-        # Staten Island
-        {"address": "St. George, Staten Island, New York", "latitude": 40.6437, "longitude": -74.0736},
-        {"address": "Tottenville, Staten Island, New York", "latitude": 40.5128, "longitude": -74.2512},
+        # # Staten Island
+        # {"address": "St. George, Staten Island, New York", "latitude": 40.6437, "longitude": -74.0736},
+        # {"address": "Tottenville, Staten Island, New York", "latitude": 40.5128, "longitude": -74.2512},
     ]
 
     async def run_all():
         for loc in locations:
-            scraper = PostmatesScraper(loc["address"], loc["latitude"], loc["longitude"])
+            scraper = PostmatesScraper(loc["address"], loc["latitude"], loc["longitude"], db)
             await scraper.scrape()
 
     asyncio.run(run_all())

@@ -3,15 +3,61 @@ import html
 from datetime import datetime
 from models import Restaurant, MenuItem, RestaurantHours
 from dataclasses import astuple
+from psycopg2.extras import execute_values
 
 class DatabaseManager:
     def __init__(self, db_config):
         self.conn = psycopg2.connect(**db_config)
         self.cur = self.conn.cursor()
 
-    def restaurant_exists(self, url):
-        self.cur.execute("SELECT 1 FROM restaurants WHERE url = %s", (url,))
-        return self.cur.fetchone() is not None
+    # def restaurant_exists(self, url):
+    #     self.cur.execute("SELECT 1 FROM restaurants WHERE url = %s", (url,))
+    #     return self.cur.fetchone() is not None
+    
+    def insert_store_links(self, link_tuples):
+
+        if not link_tuples:
+            return
+
+        query = """
+        INSERT INTO store_links (url, address, status)
+        VALUES %s
+        ON CONFLICT (url) DO NOTHING;
+        """
+        execute_values(self.cur, query, link_tuples)
+        print(f"✅ Inserted {len(link_tuples)} new store_links")
+
+    def fetch_pending_links(self, limit=50):
+        self.cur.execute("""
+            SELECT id, url
+            FROM store_links
+            WHERE status = 'pending'
+            ORDER BY updated_at ASC
+            LIMIT %s
+            FOR UPDATE SKIP LOCKED
+        """, (limit,))
+        return self.cur.fetchall()
+
+    def mark_link_processing(self, link_id):
+        self.cur.execute("""
+            UPDATE store_links
+            SET status = 'processing', updated_at = NOW()
+            WHERE id = %s
+        """, (link_id,))
+
+    def mark_link_done(self, link_id):
+        self.cur.execute("""
+            UPDATE store_links
+            SET status = 'done', last_scraped = NOW(), updated_at = NOW(), error = NULL
+            WHERE id = %s
+        """, (link_id,))
+
+    def mark_link_failed(self, link_id, error):
+        self.cur.execute("""
+            UPDATE store_links
+            SET status = 'failed', error = %s, updated_at = NOW()
+            WHERE id = %s
+        """, (error, link_id))
     
     def insert_restaurant(self, data, link):
         restaurant = Restaurant.from_json(data, link)

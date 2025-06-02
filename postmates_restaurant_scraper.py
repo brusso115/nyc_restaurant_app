@@ -7,13 +7,8 @@ import random
 from db_manager import DatabaseManager
 
 class RestaurantScraper:
-    def __init__(self, db_manager, csv_path="./data/store_links.csv"):
+    def __init__(self, db_manager):
         self.db = db_manager
-        self.csv_path = csv_path
-
-    def load_links(self):
-        df = pd.read_csv(self.csv_path)
-        return df['store_link'].dropna().unique()
 
     def parse_restaurant_page(self, url):
         try:
@@ -27,31 +22,35 @@ class RestaurantScraper:
             return None
 
     def run(self):
-        links = self.load_links()
+        print("🔍 Fetching pending links...")
+        links = self.db.fetch_pending_links()
 
-        for link in links:
-            
-            if self.db.restaurant_exists(link):
-                print(f"⏭️ Skipping {link}: already in DB")
-                continue
+        for link_id, url in links:
+            print(f"➡️ Processing: {url}")
+
+            self.db.mark_link_processing(link_id)
 
             try:
-                data = self.parse_restaurant_page(link)
+                data = self.parse_restaurant_page(url)
+
                 if not data:
-                    print(f"Skipping {link}: no JSON-LD found")
+                    print(f"⚠️ No structured data found in {url}")
+                    self.db.mark_link_failed(link_id, error="No JSON-LD found")
                     continue
 
-                self.db.insert_restaurant_data(data, link)
+                self.db.insert_restaurant_data(data, url)
+                self.db.mark_link_done(link_id)
+
                 time.sleep(random.uniform(1.5, 3.0))
 
             except Exception as e:
-                print(f"❌ Error processing {link}: {e}")
+                print(f"❌ Error processing {url}: {e}")
+                self.db.mark_link_failed(link_id, error=str(e))
 
             self.db.commit()
 
         self.db.close()
-        print("✅ All done.")
-
+        print("✅ Done scraping all pending links.")
 
 if __name__ == "__main__":
     db_config = {

@@ -40,7 +40,7 @@ class MenuItemEmbedder:
 
     def get_existing_ids(self):
         try:
-            all_vectors = self.collection.get(include=["ids"])
+            all_vectors = self.collection.get()
             return set(all_vectors["ids"])
         except:
             return set()
