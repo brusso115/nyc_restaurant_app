@@ -23,12 +23,10 @@ class RestaurantScraper:
 
     def run(self):
         print("🔍 Fetching pending links...")
-        links = self.db.fetch_pending_links()
+        links = self.db.fetch_and_claim_pending_links()
 
         for link_id, url in links:
             print(f"➡️ Processing: {url}")
-
-            self.db.mark_link_processing(link_id)
 
             try:
                 data = self.parse_restaurant_page(url)

@@ -27,23 +27,24 @@ class DatabaseManager:
         execute_values(self.cur, query, link_tuples)
         print(f"✅ Inserted {len(link_tuples)} new store_links")
 
-    def fetch_pending_links(self, limit=50):
-        self.cur.execute("""
-            SELECT id, url
-            FROM store_links
-            WHERE status = 'pending'
-            ORDER BY updated_at ASC
-            LIMIT %s
-            FOR UPDATE SKIP LOCKED
-        """, (limit,))
-        return self.cur.fetchall()
+    def fetch_and_claim_pending_links(self, limit=50):
 
-    def mark_link_processing(self, link_id):
         self.cur.execute("""
+            WITH next_links AS (
+                SELECT id, url
+                FROM store_links
+                WHERE status = 'pending'
+                ORDER BY updated_at ASC
+                LIMIT %s
+                FOR UPDATE SKIP LOCKED
+            )
             UPDATE store_links
             SET status = 'processing', updated_at = NOW()
-            WHERE id = %s
-        """, (link_id,))
+            WHERE id IN (SELECT id FROM next_links)
+            RETURNING id, url;
+        """, (limit,))
+    
+        return self.cur.fetchall()
 
     def mark_link_done(self, link_id):
         self.cur.execute("""
