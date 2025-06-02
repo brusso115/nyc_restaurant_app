@@ -9,10 +9,6 @@ class DatabaseManager:
     def __init__(self, db_config):
         self.conn = psycopg2.connect(**db_config)
         self.cur = self.conn.cursor()
-
-    # def restaurant_exists(self, url):
-    #     self.cur.execute("SELECT 1 FROM restaurants WHERE url = %s", (url,))
-    #     return self.cur.fetchone() is not None
     
     def insert_store_links(self, link_tuples):
 
