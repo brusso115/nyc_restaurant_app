@@ -5,6 +5,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from db_manager import DatabaseManager
+from queue_producer import enqueue_store_link
 
 class PostmatesScraper:
     def __init__(self, address, latitude, longitude, db_manager):
@@ -76,7 +77,13 @@ class PostmatesScraper:
         self.db.insert_store_links(new_store_links)
         self.db.commit()
 
-        print(f"📍 {self.address}: Inserted {len(new_store_links)} new links.")
+        for url, address, _ in new_store_links:
+            link_id = db.get_link_id_by_url(url)
+            status = db.get_link_status(link_id)
+            if status == 'pending':
+                enqueue_store_link(url)
+
+        print(f"📍 {self.address}: Inserted {len(new_store_links)} new links and enqueued for processing.")
 
 # Example usage
 if __name__ == "__main__":

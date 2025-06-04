@@ -9,9 +9,24 @@ class DatabaseManager:
     def __init__(self, db_config):
         self.conn = psycopg2.connect(**db_config)
         self.cur = self.conn.cursor()
+
+    def get_link_id_by_url(self, url):
+        self.cur.execute("""
+            SELECT id FROM store_links
+            WHERE url = %s
+        """, (url,))
+        row = self.cur.fetchone()
+        return row[0] if row else None
+    
+    def get_link_status(self, link_id):
+        self.cur.execute("""
+            SELECT status FROM store_links
+            WHERE id = %s
+        """, (link_id,))
+        row = self.cur.fetchone()
+        return row[0] if row else None
     
     def insert_store_links(self, link_tuples):
-
         if not link_tuples:
             return
 
@@ -23,24 +38,13 @@ class DatabaseManager:
         execute_values(self.cur, query, link_tuples)
         print(f"✅ Inserted {len(link_tuples)} new store_links")
 
-    def fetch_and_claim_pending_links(self, limit=50):
-
+    def mark_link_processing(self, link_id):
         self.cur.execute("""
-            WITH next_links AS (
-                SELECT id, url
-                FROM store_links
-                WHERE status = 'pending'
-                ORDER BY updated_at ASC
-                LIMIT %s
-                FOR UPDATE SKIP LOCKED
-            )
             UPDATE store_links
-            SET status = 'processing', updated_at = NOW()
-            WHERE id IN (SELECT id FROM next_links)
-            RETURNING id, url;
-        """, (limit,))
-    
-        return self.cur.fetchall()
+            SET status = 'processing',
+                updated_at = NOW()
+            WHERE id = %s
+        """, (link_id,))
 
     def mark_link_done(self, link_id):
         self.cur.execute("""
