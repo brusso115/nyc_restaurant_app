@@ -103,7 +103,7 @@ class DatabaseManager:
                             restaurant_id, section, name, description, price, currency, embedded
                         ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (restaurant_id, name) DO NOTHING
-                    """, astuple(menu_item) + (False,))
+                    """, astuple(menu_item))
         except Exception as e:
             print(f"⚠️ Menu item error at {link}: {e}")
 
