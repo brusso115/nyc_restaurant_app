@@ -13,8 +13,7 @@ cleanup() {
   exit 0
 }
 
-# Trap SIGINT (Ctrl+C) and call cleanup
-trap cleanup SIGINT
+trap cleanup SIGINT SIGTERM EXIT
 
 # Optional: activate virtualenv
 # source restaurant-recommender-env/bin/activate

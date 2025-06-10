@@ -83,6 +83,9 @@ class DatabaseManager:
         return result[0] if result else None
 
     def insert_menu_items(self, restaurant_id, data, link):
+        if restaurant_id is None:
+            print(f"⚠️ Skipping menu items for {link} — no restaurant_id")
+            return
         try:
             for section in data.get("hasMenu", {}).get("hasMenuSection", []):
                 section_name = section.get("name", "")
@@ -98,6 +101,9 @@ class DatabaseManager:
             print(f"⚠️ Menu item error at {link}: {e}")
 
     def insert_hours(self, restaurant_id, data, link):
+        if restaurant_id is None:
+            print(f"⚠️ Skipping hours for {link} — no restaurant_id")
+            return
         try:
             for entry in data.get("openingHoursSpecification", []):
                 days = entry["dayOfWeek"]
