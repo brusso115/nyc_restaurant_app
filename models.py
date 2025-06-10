@@ -56,7 +56,8 @@ class MenuItem:
             name=html.unescape(item.get("name", "")),
             description=html.unescape(item.get("description", "")),
             price=item.get("offers", {}).get("price"),
-            currency=item.get("offers", {}).get("priceCurrency")
+            currency=item.get("offers", {}).get("priceCurrency"),
+            embedded=False
         )
 
 @dataclass
