@@ -1,0 +1,5 @@
+chroma_db/
+restaurant-recommender-env/
+sentence_transformer_model/
+*.rdb
+notes.txt
