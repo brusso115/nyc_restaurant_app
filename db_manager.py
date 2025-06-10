@@ -130,7 +130,9 @@ class DatabaseManager:
         restaurant_id = self.insert_restaurant(data, link)
         self.insert_menu_items(restaurant_id, data, link)
         self.insert_hours(restaurant_id, data, link)
+        
         print(f"✅ Inserted {html.unescape(data['name'])}")
+        return restaurant_id
 
     def get_menu_item_ids_by_restaurant_url(self, url):
         self.cur.execute("""
@@ -157,6 +159,14 @@ class DatabaseManager:
                 "description": row[3]
             }
         return None
+    
+    def get_unembedded_menu_items_by_restaurant_id(self, restaurant_id):
+        self.cur.execute("""
+            SELECT id, name, description
+            FROM menu_items
+            WHERE restaurant_id = %s AND embedded = FALSE
+        """, (restaurant_id,))
+        return self.cur.fetchall()
 
     def commit(self):
         self.conn.commit()

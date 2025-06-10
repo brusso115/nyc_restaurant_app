@@ -67,14 +67,14 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
             db.mark_link_failed(link_id, "No JSON-LD found")
             return
 
-        db.insert_restaurant_data(data, url)
+        restaurant_id = db.insert_restaurant_data(data, url)
 
-        # Enqueue embedding tasks
-        menu_item_ids = db.get_menu_item_ids_by_restaurant_url(url)
-        for item_id in menu_item_ids:
-            print('add task to embedding queue')
-            embed_menu_item_task.delay(item_id)
-
+        if restaurant_id is not None:
+            item_ids = [row[0] for row in db.get_unembedded_menu_items_by_restaurant_id(restaurant_id)]
+            if item_ids:
+                embed_menu_items_task.delay(item_ids)
+        else:
+            print(f"⚠️ Skipping embedding — restaurant insert failed for {url}")
 
         db.mark_link_done(link_id)
         db.commit()
@@ -87,59 +87,31 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
     finally:
         db.close()
 
-@app.task(name="tasks.embed_menu_item_task", queue="embedding_queue")
-def embed_menu_item_task(menu_item_id):
+@app.task(name="tasks.embed_menu_items_task", queue="embedding_queue")
+def embed_menu_items_task(menu_item_ids):
+    db = DatabaseManager(DB_CONFIG)
+    items = []
+    for item_id in menu_item_ids:
+        item = db.get_menu_item_by_id(item_id)
+        if item:
+            text = f"{item['name']} - {item['description'] or ''}"
+            items.append((item_id, text))
 
-    ensure_model_loaded()
-    # Embed logic goes here
-    print('Embedding Q Started')
-    try:
+    texts = [text for (_, text) in items]
+    embeddings = sentence_model.encode(texts, show_progress_bar=True)
 
-        db = DatabaseManager(DB_CONFIG)
-        item = db.get_menu_item_by_id(menu_item_id)
+    chroma_client = chromadb.PersistentClient(path="./chroma_db")
+    collection = chroma_client.get_or_create_collection("menu_items")
 
-        if not item:
-            print(f"⚠️ Menu item with ID {menu_item_id} not found.")
-            return
+    collection.add(
+        documents=texts,
+        ids=[str(id) for (id, _) in items],
+        embeddings=embeddings.tolist(),
+    )
 
-        restaurant_id = item["restaurant_id"]
-        name = item["name"]
-        description = item["description"]
-        text = f"{name}: {description or ''}"
-
-        # Create deterministic ID
-        vector_id = hashlib.md5(f"{restaurant_id}:{name}:{description or ''}".encode("utf-8")).hexdigest()
-
-        # Initialize Chroma
-        client = chromadb.PersistentClient(path=CHROMA_PATH)
-        collection = client.get_or_create_collection(name="menu_items")
-
-        # Check for duplicates
-        existing_ids = set()
-        try:
-            existing_ids = set(collection.get()["ids"])
-        except:
-            pass
-
-        if vector_id in existing_ids:
-            print(f"🔁 Menu item already embedded: {name}")
-            return
-
-        # Embed and insert
-        embedding = sentence_model.encode([text])[0].tolist()
-
-        collection.add(
-            ids=[vector_id],
-            embeddings=[embedding],
-            documents=[text],
-            metadatas=[{"restaurant_id": restaurant_id}]
-        )
-
-        db.mark_menu_item_embedded(menu_item_id)
-
-        print(f"✅ Embedded and stored: {name}")
-
-    except Exception as e:
-        print(f"❌ Failed to embed menu item {menu_item_id}: {e}")
-    finally:
-        db.close()
+    # Mark items as embedded in Postgres
+    for item_id, _ in items:
+        db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item_id,))
+    
+    db.commit()
+    db.close()

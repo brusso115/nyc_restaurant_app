@@ -15,5 +15,5 @@ app = Celery("restaurant_tasks",
 # Task routing: sends tasks to specific queues
 app.conf.task_routes = {
     "tasks.scrape_restaurant_task": {"queue": "scraper_queue"},
-    "tasks.embed_menu_item_task": {"queue": "embedding_queue"},
+    "tasks.embed_menu_items_task": {"queue": "embedding_queue"},
 }
