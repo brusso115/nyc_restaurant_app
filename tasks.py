@@ -89,6 +89,7 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
 
 @app.task(name="tasks.embed_menu_items_task", queue="embedding_queue")
 def embed_menu_items_task(menu_item_ids):
+    ensure_model_loaded()
     db = DatabaseManager(DB_CONFIG)
     items = []
     for item_id in menu_item_ids:
