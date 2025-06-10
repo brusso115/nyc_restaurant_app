@@ -78,8 +78,8 @@ class PostmatesScraper:
         self.db.commit()
 
         for url, address, _ in new_store_links:
-            link_id = db.get_link_id_by_url(url)
-            status = db.get_link_status(link_id)
+            link_id = self.db.get_link_id_by_url(url)
+            status = self.db.get_link_status(link_id)
             if status in ('pending', 'failed'):
                 scrape_restaurant_task.delay(url)
 
