@@ -92,7 +92,8 @@ class DatabaseManager:
     def insert_menu_items(self, restaurant_id, data, link):
         if restaurant_id is None:
             print(f"⚠️ Skipping menu items for {link} — no restaurant_id")
-            return
+            return 0
+        inserted = 0
         try:
             for section in data.get("hasMenu", {}).get("hasMenuSection", []):
                 section_name = section.get("name", "")
@@ -104,13 +105,17 @@ class DatabaseManager:
                         ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (restaurant_id, name) DO NOTHING
                     """, astuple(menu_item))
+                    if self.cur.rowcount > 0:
+                        inserted += 1
         except Exception as e:
             print(f"⚠️ Menu item error at {link}: {e}")
+        return inserted
 
     def insert_hours(self, restaurant_id, data, link):
         if restaurant_id is None:
             print(f"⚠️ Skipping hours for {link} — no restaurant_id")
-            return
+            return 0
+        inserted = 0
         try:
             for entry in data.get("openingHoursSpecification", []):
                 days = entry["dayOfWeek"]
@@ -123,16 +128,22 @@ class DatabaseManager:
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT ON CONSTRAINT unique_hours DO NOTHING
                     """, astuple(restaurant_hours))
+                    if self.cur.rowcount > 0:
+                        inserted += 1
         except Exception as e:
             print(f"⚠️ Opening hours error at {link}: {e}")
+        return inserted
 
     def insert_restaurant_data(self, data, link):
         restaurant_id = self.insert_restaurant(data, link)
-        self.insert_menu_items(restaurant_id, data, link)
-        self.insert_hours(restaurant_id, data, link)
+        if restaurant_id is None:
+            return None
+
+        menu_count = self.insert_menu_items(restaurant_id, data, link)
+        hours_count = self.insert_hours(restaurant_id, data, link)
         
         print(f"✅ Inserted {html.unescape(data['name'])}")
-        return restaurant_id
+        return restaurant_id, menu_count, hours_count
 
     def get_menu_item_ids_by_restaurant_url(self, url):
         self.cur.execute("""

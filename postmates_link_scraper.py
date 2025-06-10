@@ -80,7 +80,7 @@ class PostmatesScraper:
         for url, address, _ in new_store_links:
             link_id = db.get_link_id_by_url(url)
             status = db.get_link_status(link_id)
-            if status == 'pending':
+            if status in ('pending', 'failed'):
                 scrape_restaurant_task.delay(url)
 
         print(f"📍 {self.address}: Inserted {len(new_store_links)} new links and enqueued for processing.")
