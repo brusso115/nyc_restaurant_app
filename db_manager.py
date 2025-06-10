@@ -68,6 +68,13 @@ class DatabaseManager:
             SET status = 'failed', error = %s, updated_at = NOW()
             WHERE id = %s
         """, (error, link_id))
+
+    def mark_menu_item_embedded(self, menu_item_id):
+        self.cur.execute("""
+            UPDATE menu_items
+            SET embedded = TRUE
+            WHERE id = %s
+        """, (menu_item_id,))
     
     def insert_restaurant(self, data, link):
         restaurant = Restaurant.from_json(data, link)
@@ -93,10 +100,10 @@ class DatabaseManager:
                     menu_item = MenuItem.from_json(restaurant_id, section_name, item)
                     self.cur.execute("""
                         INSERT INTO menu_items (
-                            restaurant_id, section, name, description, price, currency
-                        ) VALUES (%s, %s, %s, %s, %s, %s)
+                            restaurant_id, section, name, description, price, currency, embedded
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (restaurant_id, name) DO NOTHING
-                    """, astuple(menu_item))
+                    """, astuple(menu_item) + (False,))
         except Exception as e:
             print(f"⚠️ Menu item error at {link}: {e}")
 

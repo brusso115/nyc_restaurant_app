@@ -46,6 +46,7 @@ class MenuItem:
     description: Optional[str]
     price: Optional[float]
     currency: Optional[str]
+    embedded: bool = False
 
     @classmethod
     def from_json(cls, restaurant_id: int, section_name: str, item: dict) -> "MenuItem":

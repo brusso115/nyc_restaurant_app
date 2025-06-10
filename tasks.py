@@ -135,6 +135,8 @@ def embed_menu_item_task(menu_item_id):
             metadatas=[{"restaurant_id": restaurant_id}]
         )
 
+        db.mark_menu_item_embedded(menu_item_id)
+
         print(f"✅ Embedded and stored: {name}")
 
     except Exception as e:
