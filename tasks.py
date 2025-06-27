@@ -10,6 +10,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from celery.signals import worker_process_init
 import threading
+import html
 
 sentence_model = None
 _model_lock = threading.Lock()
@@ -99,6 +100,7 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         else:
             print(f"⚠️ No unembedded items for {url}")
 
+        print(f"✅ Inserted {html.unescape(data['name'])}")
         db.commit()
 
     except Exception as e:
@@ -122,12 +124,6 @@ def embed_menu_items_task(menu_item_ids, link_id):
             if item:
                 text = f"{item['name']} - {item['description'] or ''}"
                 items.append((item_id, text))
-
-        if not items:
-            print(f"⚠️ No valid menu items to embed for link_id {link_id}")
-            db.mark_link_failed(link_id, "No valid menu items to embed")
-            db.commit()
-            return
 
         embed_items(db, items, link_id)
         db.commit()

@@ -173,7 +173,6 @@ class DatabaseManager:
         menu_count = self.insert_menu_items(restaurant_id, data, link)
         hours_count = self.insert_hours(restaurant_id, data, link)
         
-        print(f"✅ Inserted {html.unescape(data['name'])}")
         return restaurant_id, menu_count, hours_count
 
     def get_menu_item_ids_by_restaurant_url(self, url):
