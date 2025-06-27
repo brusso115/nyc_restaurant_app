@@ -4,8 +4,6 @@ from datetime import datetime
 from models import Restaurant, MenuItem, RestaurantHours
 from dataclasses import astuple
 from psycopg2.extras import execute_values
-import os
-
 
 DB_CONFIG = {
     "dbname": "restaurant_data",
