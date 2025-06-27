@@ -1,66 +1,57 @@
 import asyncio
-import os
 import random
 import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from db_manager import DatabaseManager
 from tasks import scrape_restaurant_task
+from playwright.async_api import Page
 
 class PostmatesScraper:
+
     def __init__(self, address, latitude, longitude, db_manager):
         self.address = address
         self.latitude = latitude
         self.longitude = longitude
         self.db = db_manager
 
-    async def scrape(self):
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=False)
-            context = await browser.new_context(
-                geolocation={"latitude": self.latitude, "longitude": self.longitude},
-                permissions=["geolocation"],
-                locale="en-US"
-            )
-            page = await context.new_page()
-            await page.goto("https://postmates.com/")
+    async def handle_cookie_banner(self, page: Page):
+        try:
+            await page.locator("button:has-text('Got it')").click(timeout=3000)
+        except:
+            pass
 
-            # Handle cookie banner
-            try:
-                await page.locator("button:has-text('Got it')").click(timeout=3000)
-            except:
-                pass
+    async def dismiss_delivery_modal(self, page: Page):
+        try:
+            await page.locator(
+                'button[data-test-id="feed-location-request-modal-dismiss-button"]'
+            ).click(timeout=5000)
+            await asyncio.sleep(random.uniform(1.5, 3.0))
+        except:
+            pass
 
-            # Dismiss delivery modal if shown
+    async def enter_address(self, page: Page):
+        await page.wait_for_selector(
+            'input[data-testid="location-typeahead-input"]', timeout=8000
+        )
+        await page.fill('input[data-testid="location-typeahead-input"]', self.address)
+        await asyncio.sleep(2.0)
+        await page.keyboard.press("Enter")
+
+    async def wait_for_results(self, page: Page):
+        await page.wait_for_selector(
+            'a[data-testid="store-card"]', state="attached", timeout=30000
+        )
+
+    async def scroll_and_click_show_more(self, page: Page):
+        while True:
             try:
-                await page.locator('button[data-test-id="feed-location-request-modal-dismiss-button"]').click(timeout=5000)
+                await page.mouse.wheel(0, 5000)
+                await asyncio.sleep(random.uniform(1.5, 3.0))
+                await page.locator("button:has-text('Show more')").click(timeout=3000)
                 await asyncio.sleep(random.uniform(1.5, 3.0))
             except:
-                pass
-
-            # Fill in the address and hit enter
-            await page.wait_for_selector('input[data-testid="location-typeahead-input"]', timeout=8000)
-            await page.fill('input[data-testid="location-typeahead-input"]', self.address)
-            await asyncio.sleep(2.0)
-            await page.keyboard.press("Enter")
-
-            # Wait for the results
-            await page.wait_for_selector('a[data-testid="store-card"]', state="attached", timeout=30000)
-
-            # Scroll and click 'Show more'
-            while True:
-                try:
-                    await page.mouse.wheel(0, 5000)
-                    await asyncio.sleep(random.uniform(1.5, 3.0))
-                    await page.locator("button:has-text('Show more')").click(timeout=3000)
-                    await asyncio.sleep(random.uniform(1.5, 3.0))
-                except:
-                    break
-
-            html = await page.content()
-            await browser.close()
-
-        return self.extract_links(html)
+                break
 
     def extract_links(self, html):
 
@@ -85,6 +76,32 @@ class PostmatesScraper:
 
         print(f"📍 {self.address}: Inserted {len(new_store_links)} new links and enqueued for processing.")
 
+    async def scrape(self):
+        async with async_playwright() as p:
+
+            browser = await p.chromium.launch(headless=False)
+
+            try:
+                context = await browser.new_context(
+                    geolocation={"latitude": self.latitude, "longitude": self.longitude},
+                    permissions=["geolocation"],
+                    locale="en-US"
+                )
+                page = await context.new_page()
+                await page.goto("https://postmates.com/")
+
+                await self.handle_cookie_banner(page)
+                await self.dismiss_delivery_modal(page)
+                await self.enter_address(page)
+                await self.wait_for_results(page)
+                await self.scroll_and_click_show_more(page)
+
+                html = await page.content()
+            finally:
+                await browser.close()
+
+        self.extract_links(html)
+
 # Example usage
 if __name__ == "__main__":
 
@@ -94,7 +111,6 @@ if __name__ == "__main__":
         "host": "localhost",
         "port": "5432"
     }
-
 
     db = DatabaseManager(DB_CONFIG)
 

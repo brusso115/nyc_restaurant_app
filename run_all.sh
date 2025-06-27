@@ -25,7 +25,7 @@ sleep 2
 
 # Start Celery embedding worker
 echo "📦 Starting Celery embedding worker..."
-celery -A celery_app worker --loglevel=info --concurrency=4 --pool=threads --queues=embedding_queue &
+celery -A celery_app worker --loglevel=info --concurrency=8 --pool=threads --queues=embedding_queue &
 EMBED_PID=$!
 
 # Start Celery scraper worker
@@ -38,7 +38,7 @@ sleep 3
 
 # Run the scraper
 # echo "🔍 Running scraper..."
-# python postmates_link_scraper.py
+python postmates_link_scraper.py
 
 # Wait for workers to finish (keeps script open until killed)
 wait $EMBED_PID

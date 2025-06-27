@@ -7,7 +7,6 @@ import html
 class Restaurant:
     name: str
     url: str
-    categories: str
     address: str
     city: str
     region: str
@@ -25,7 +24,6 @@ class Restaurant:
         return cls(
             name=html.unescape(data["name"]),
             url=link,
-            categories=html.unescape(", ".join(data.get("servesCuisine", []))),
             address=data["address"]["streetAddress"],
             city=data["address"]["addressLocality"],
             region=data["address"]["addressRegion"],

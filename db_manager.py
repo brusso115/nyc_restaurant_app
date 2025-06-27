@@ -80,14 +80,46 @@ class DatabaseManager:
         restaurant = Restaurant.from_json(data, link)
         self.cur.execute("""
             INSERT INTO restaurants (
-                name, url, categories, address, city, region, postal_code, country,
+                name, url, address, city, region, postal_code, country,
                 latitude, longitude, telephone, rating, review_count
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (url) DO NOTHING
             RETURNING id
         """, astuple(restaurant))
         result = self.cur.fetchone()
         return result[0] if result else None
+    
+    def insert_categories(self, restaurant_id, data, link):
+
+        if restaurant_id is None:
+            print(f"⚠️ Skipping menu categories for {link} — no restaurant_id")
+            return
+        
+        categories = data.get("servesCuisine", [])
+
+        for category in categories:
+            category = html.unescape(category)
+            self.cur.execute("""
+                INSERT INTO categories (name)
+                VALUES (%s)
+                ON CONFLICT (name) DO NOTHING
+                RETURNING id
+            """, (category,))
+            result = self.cur.fetchone()
+
+            if result is None:
+                self.cur.execute("SELECT id FROM categories WHERE name = %s", (category,))
+                category_id = self.cur.fetchone()[0]
+            else:
+                category_id = result[0]
+
+            self.cur.execute("""
+                INSERT INTO restaurant_categories (restaurant_id, category_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (restaurant_id, category_id))
+        
+        return
 
     def insert_menu_items(self, restaurant_id, data, link):
         if restaurant_id is None:
@@ -139,6 +171,7 @@ class DatabaseManager:
         if restaurant_id is None:
             return None
 
+        self.insert_categories(restaurant_id, data, link)
         menu_count = self.insert_menu_items(restaurant_id, data, link)
         hours_count = self.insert_hours(restaurant_id, data, link)
         
