@@ -85,15 +85,12 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         result = db.insert_restaurant_data(data, url)
 
         if not result:
-            raise ValueError("Restaurant insert failed")
+            print('Restaurant already exists')
+            return
         
         restaurant_id, menu_count, hours_count = result
         if menu_count == 0 or hours_count == 0:
             raise ValueError("Menu items or hours not inserted")
-
-        # Embed only after successful DB commit
-        if restaurant_id is None:
-            raise Exception("Restaurant ID was None")
         
         item_ids = [row[0] for row in db.get_unembedded_menu_items_by_restaurant_id(restaurant_id)]
 
