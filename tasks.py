@@ -76,18 +76,22 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         if not link_id:
             print(f"⚠️ No matching store_links row for {url}")
             return
+        
+        if db.restaurant_exists_for_url(url):
+            print(f"⚠️ Restaurant already exists — skipping {url}")
+            db.mark_link_done(link_id)
+            db.commit()
+            return
 
         db.mark_link_processing(link_id)
+        db.commit()
+
         data = parse_json_ld(url)
 
         if not data:
             raise Exception("No data extracted")
         
         result = db.insert_restaurant_data(data, url)
-
-        if not result:
-            print(f"Restaurant already exists - {html.unescape(data['name'])}")
-            return
         
         restaurant_id, menu_count, hours_count = result
         if menu_count == 0 or hours_count == 0:

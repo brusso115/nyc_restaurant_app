@@ -115,7 +115,7 @@ if __name__ == "__main__":
     db = DatabaseManager(DB_CONFIG)
 
     locations = [
-        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
         # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},

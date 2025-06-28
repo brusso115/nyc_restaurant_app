@@ -73,6 +73,10 @@ class DatabaseManager:
             SET embedded = TRUE
             WHERE id = %s
         """, (menu_item_id,))
+
+    def restaurant_exists_for_url(self, url: str) -> bool:
+        self.cur.execute("SELECT 1 FROM restaurants WHERE source_url = %s LIMIT 1", (url,))
+        return self.cur.fetchone() is not None
     
     def insert_restaurant(self, data, link):
         restaurant = Restaurant.from_json(data, link)
