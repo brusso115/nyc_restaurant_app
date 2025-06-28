@@ -79,8 +79,6 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         
         if db.restaurant_exists_for_url(url):
             print(f"⚠️ Restaurant already exists — skipping {url}")
-            db.mark_link_done(link_id)
-            db.commit()
             return
 
         db.mark_link_processing(link_id)
