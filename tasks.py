@@ -86,7 +86,7 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         result = db.insert_restaurant_data(data, url)
 
         if not result:
-            print(f"Restaurant already exists - {data['name']}")
+            print(f"Restaurant already exists - {html.unescape(data['name'])}")
             return
         
         restaurant_id, menu_count, hours_count = result
