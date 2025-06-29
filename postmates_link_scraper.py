@@ -71,7 +71,7 @@ class PostmatesScraper:
         for url, address, _ in new_store_links:
             link_id = self.db.get_link_id_by_url(url)
             status = self.db.get_link_status(link_id)
-            if status in ('pending', 'failed'):
+            if status in ('pending'):
                 scrape_restaurant_task.delay(url)
 
         print(f"📍 {self.address}: Inserted {len(new_store_links)} new links and enqueued for processing.")
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     db = DatabaseManager(DB_CONFIG)
 
     locations = [
-        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
         # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},

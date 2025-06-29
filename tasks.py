@@ -44,24 +44,6 @@ def parse_json_ld(url: str) -> dict:
         raise ValueError("No JSON-LD script tag found")
     return json.loads(tag.string)
 
-def embed_items(db: DatabaseManager, items: list[tuple[int, str]], link_id: int):
-
-    texts = [text for _, text in items]
-    embeddings = sentence_model.encode(texts, show_progress_bar=True)
-
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_or_create_collection("menu_items")
-
-    collection.add(
-        documents=texts,
-        ids=[str(item_id) for item_id, _ in items],
-        embeddings=embeddings.tolist(),
-    )
-
-    for item_id, _ in items:
-        db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item_id,))
-    db.mark_link_done(link_id)
-
 @app.task(name="tasks.scrape_restaurant_task", queue="scraper_queue")
 def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
 
@@ -112,6 +94,24 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         db.commit()
     finally:
         db.close()
+
+def embed_items(db: DatabaseManager, items: list[tuple[int, str]], link_id: int):
+
+    texts = [text for _, text in items]
+    embeddings = sentence_model.encode(texts, show_progress_bar=True)
+
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    collection = client.get_or_create_collection("menu_items")
+
+    collection.add(
+        documents=texts,
+        ids=[str(item_id) for item_id, _ in items],
+        embeddings=embeddings.tolist(),
+    )
+
+    for item_id, _ in items:
+        db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item_id,))
+    db.mark_link_done(link_id)
 
 @app.task(name="tasks.embed_menu_items_task", queue="embedding_queue")
 def embed_menu_items_task(menu_item_ids, link_id):

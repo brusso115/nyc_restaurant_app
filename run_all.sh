@@ -38,7 +38,7 @@ sleep 3
 
 # Run the scraper
 # echo "🔍 Running scraper..."
-# python postmates_link_scraper.py
+python postmates_link_scraper.py
 
 # Wait for workers to finish (keeps script open until killed)
 wait $EMBED_PID
