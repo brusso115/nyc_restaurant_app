@@ -100,13 +100,14 @@ def embed_items(db: DatabaseManager, items: list[tuple[int, str]], link_id: int)
     texts = [text for _, text in items]
     embeddings = sentence_model.encode(texts, show_progress_bar=True)
 
-    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    client = chromadb.PersistentClient(path=CHROMA_PATH, tenant="default_tenant")
     collection = client.get_or_create_collection("menu_items")
 
     collection.add(
         documents=texts,
         ids=[str(item_id) for item_id, _ in items],
         embeddings=embeddings.tolist(),
+        metadatas=[{"menu_item_id": str(item_id)} for item_id, _ in items] 
     )
 
     for item_id, _ in items:
