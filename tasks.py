@@ -95,9 +95,9 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
     finally:
         db.close()
 
-def embed_items(db: DatabaseManager, items: list[tuple[int, str]], link_id: int):
+def embed_items(db: DatabaseManager, items: list[dict], link_id: int):
 
-    texts = [text for _, text in items]
+    texts = [item["text"] for item in items]
     embeddings = sentence_model.encode(texts, show_progress_bar=True)
 
     client = chromadb.PersistentClient(path=CHROMA_PATH, tenant="default_tenant")
@@ -105,13 +105,21 @@ def embed_items(db: DatabaseManager, items: list[tuple[int, str]], link_id: int)
 
     collection.add(
         documents=texts,
-        ids=[str(item_id) for item_id, _ in items],
+        ids=[str(item["id"]) for item in items],
         embeddings=embeddings.tolist(),
-        metadatas=[{"menu_item_id": str(item_id)} for item_id, _ in items] 
+        metadatas=[
+            {
+                "menu_item_id": str(item["id"]),
+                "restaurant_name": item["restaurant_name"],
+                "restaurant_address": item["restaurant_address"],
+            }
+            for item in items
+        ]
     )
 
-    for item_id, _ in items:
-        db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item_id,))
+    for item in items:
+        db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item["id"],))
+        
     db.mark_link_done(link_id)
 
 @app.task(name="tasks.embed_menu_items_task", queue="embedding_queue")
@@ -125,8 +133,17 @@ def embed_menu_items_task(menu_item_ids, link_id):
         for item_id in menu_item_ids:
             item = db.get_menu_item_by_id(item_id)
             if item:
-                text = f"{item['name']} - {item['description'] or ''}"
-                items.append((item_id, text))
+                restaurant = db.get_restaurant_by_id(item["restaurant_id"])
+                if restaurant:
+                    text = f"{item['name']} - {item['description'] or ''}"
+                    items.append({
+                        "id": item_id,
+                        "text": text,
+                        "restaurant_name": restaurant["name"],
+                        "restaurant_address": restaurant["address"]
+                    })
+                else:
+                    raise ValueError(f"No restaurant found for menu_item_id {item_id}")
 
         embed_items(db, items, link_id)
         db.commit()

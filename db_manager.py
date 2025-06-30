@@ -205,6 +205,23 @@ class DatabaseManager:
             }
         return None
     
+    def get_restaurant_by_id(self, restaurant_id: int) -> dict | None:
+        """Fetch restaurant info by ID."""
+        self.cur.execute("""
+            SELECT id, name, address
+            FROM restaurants
+            WHERE id = %s
+        """, (restaurant_id,))
+        row = self.cur.fetchone()
+
+        if row:
+            return {
+                "id": row[0],
+                "name": row[1],
+                "address": row[2]
+            }
+        return None
+    
     def get_unembedded_menu_items_by_restaurant_id(self, restaurant_id):
         self.cur.execute("""
             SELECT id, name, description
