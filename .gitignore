@@ -4,6 +4,8 @@ sentence_transformer_model/
 *.rdb
 notes.txt
 
+embedding_worker/sentence_transformer_model/
+
 # Airflow runtime files
 airflow/*
 

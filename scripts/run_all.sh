@@ -3,46 +3,41 @@
 set -e
 set -o pipefail
 
-cd "$(dirname "$0")"
-export PYTHONPATH=$(cd .. && pwd)
-
-# Cleanup function to kill background jobs on exit
+# Cleanup on exit
 cleanup() {
   echo "🧹 Cleaning up..."
   echo "⛔ Killing Redis..."
   pkill -f redis-server || true
-  echo "⛔ Killing all Celery workers..."
-  pkill -f "celery -A celery_app" || true
+  echo "⛔ Killing Celery workers..."
+  pkill -f "celery -A scraper_worker.tasks" || true
+  pkill -f "celery -A embedder_worker.tasks" || true
   exit 0
 }
 
 trap cleanup SIGINT SIGTERM EXIT
 
-# Optional: activate virtualenv
-# source restaurant-recommender-env/bin/activate
+# Set PYTHONPATH to project root so all modules work
+export PYTHONPATH=$(cd "$(dirname "$0")/.." && pwd)
 
 # Start Redis
 echo "🚀 Starting Redis..."
 redis-server > /dev/null 2>&1 &
 sleep 2
 
-# Start Celery embedding worker
-echo "📦 Starting Celery embedding worker..."
-celery -A celery_workers.celery_app worker --loglevel=info --concurrency=8 --pool=threads --queues=embedding_queue &
-EMBED_PID=$!
-
-# Start Celery scraper worker
-echo "🕸️ Starting Celery scraper worker..."
-celery -A celery_workers.celery_app worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue &
+# Start Scraper Worker
+echo "🕷️ Starting Scraper Worker..."
+celery -A scraper_worker.tasks worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue &
 SCRAPER_PID=$!
 
-# Wait a bit
-sleep 3
+# Start Embedder Worker
+echo "🧠 Starting Embedder Worker..."
+celery -A embedding_worker.tasks worker --loglevel=info --concurrency=4 --pool=threads --queues=embedding_queue &
+EMBEDDER_PID=$!
 
-# Run the scraper
-# echo "🔍 Running scraper..."
-# python ../scraper/postmates_link_scraper.py
+# Optional: Run your scraper to enqueue jobs
+echo "🔍 Running scraper..."
+python ../scraper/postmates_link_scraper.py
 
-# Wait for workers to finish (keeps script open until killed)
-wait $EMBED_PID
+# Keep script running until terminated
 wait $SCRAPER_PID
+wait $EMBEDDER_PID

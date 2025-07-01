@@ -3,32 +3,30 @@
 set -e
 set -o pipefail
 
-# Go to the folder this script lives in
 cd "$(dirname "$0")"
 export PYTHONPATH=$(cd .. && pwd)
 
-# Activate the virtualenv (sibling folder)
-# source ../restaurant-recommender-env/bin/activate
-
 echo "🔍 Checking if Redis is running..."
 if ! pgrep -f redis-server > /dev/null; then
-    echo "🚀 Redis not running — starting it..."
-    redis-server --daemonize yes
-    sleep 2
+  echo "🚀 Redis not running — starting it..."
+  redis-server --daemonize yes
+  sleep 2
 else
-    echo "✅ Redis is already running"
+  echo "✅ Redis is already running"
 fi
 
 echo "🧼 Flushing Redis..."
 redis-cli FLUSHALL || echo "⚠️ Failed to flush Redis"
 
-echo "🧯 Purging all Celery queues..."
-celery -A celery_workers.celery_app purge -f || echo "⚠️ Failed to purge Celery queues"
+echo "🧯 Purging Celery queues..."
+celery -A scraper_worker.tasks purge -f || echo "⚠️ Failed to purge scraper queue"
+celery -A embedding_worker.tasks purge -f || echo "⚠️ Failed to purge embedding queue"
 
-echo "🔪 Killing all Celery workers..."
-pkill -f "celery -A celery_workers.celery_app" || echo "⚠️ No Celery workers found"
+echo "🔪 Killing Celery workers..."
+pkill -f "celery -A scraper_worker.tasks" || echo "⚠️ No scraper workers running"
+pkill -f "celery -A embedding_worker.tasks" || echo "⚠️ No embedder workers running"
 
 echo "⛔ Stopping Redis server..."
-pkill -f redis-server || echo "⚠️ Redis server may not have been running"
+pkill -f redis-server || echo "⚠️ Redis not running"
 
 echo "✅ Cleanup complete."
