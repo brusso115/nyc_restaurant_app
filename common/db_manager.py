@@ -1,7 +1,7 @@
 import psycopg2
 import html
 from datetime import datetime
-from models import Restaurant, MenuItem, RestaurantHours
+from common.models import Restaurant, MenuItem, RestaurantHours
 from dataclasses import astuple
 from psycopg2.extras import execute_values
 

@@ -3,4 +3,21 @@ restaurant-recommender-env/
 sentence_transformer_model/
 *.rdb
 notes.txt
-airflow_home/
+
+# Airflow runtime files
+airflow/*
+
+# Keep the dags folder and Python files inside it
+!airflow/dags/
+!airflow/dags/*.py
+
+# Python junk
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# VSCode or IDE stuff
+.vscode/
+.idea/
+.DS_Store

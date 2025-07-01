@@ -3,6 +3,9 @@
 set -e
 set -o pipefail
 
+cd "$(dirname "$0")"
+export PYTHONPATH=$(cd .. && pwd)
+
 # Cleanup function to kill background jobs on exit
 cleanup() {
   echo "🧹 Cleaning up..."
@@ -25,12 +28,12 @@ sleep 2
 
 # Start Celery embedding worker
 echo "📦 Starting Celery embedding worker..."
-celery -A celery_app worker --loglevel=info --concurrency=8 --pool=threads --queues=embedding_queue &
+celery -A celery_workers.celery_app worker --loglevel=info --concurrency=8 --pool=threads --queues=embedding_queue &
 EMBED_PID=$!
 
 # Start Celery scraper worker
 echo "🕸️ Starting Celery scraper worker..."
-celery -A celery_app worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue &
+celery -A celery_workers.celery_app worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue &
 SCRAPER_PID=$!
 
 # Wait a bit
@@ -38,7 +41,7 @@ sleep 3
 
 # Run the scraper
 # echo "🔍 Running scraper..."
-python postmates_link_scraper.py
+# python ../scraper/postmates_link_scraper.py
 
 # Wait for workers to finish (keeps script open until killed)
 wait $EMBED_PID

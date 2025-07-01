@@ -1,5 +1,5 @@
-from celery_app import app
-from db_manager import DatabaseManager
+from celery_workers.celery_app import app
+from common.db_manager import DatabaseManager
 import traceback
 import requests
 import json
@@ -22,7 +22,7 @@ DB_CONFIG = {
     "port": "5432"
 }
 
-CHROMA_PATH = "./chroma_db"
+CHROMA_PATH = "../chroma_db"
 
 def ensure_model_loaded():
     global sentence_model
@@ -30,7 +30,7 @@ def ensure_model_loaded():
         with _model_lock:
             if sentence_model is None:  # Double-checked locking
                 print("🔁 Loading SentenceTransformer model...")
-                sentence_model = SentenceTransformer("./sentence_transformer_model")
+                sentence_model = SentenceTransformer("../sentence_transformer_model")
 
 @worker_process_init.connect
 def init_worker(**kwargs):
@@ -119,7 +119,7 @@ def embed_items(db: DatabaseManager, items: list[dict], link_id: int):
 
     for item in items:
         db.cur.execute("UPDATE menu_items SET embedded = TRUE WHERE id = %s", (item["id"],))
-        
+
     db.mark_link_done(link_id)
 
 @app.task(name="tasks.embed_menu_items_task", queue="embedding_queue")

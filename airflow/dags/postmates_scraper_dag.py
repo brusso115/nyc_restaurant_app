@@ -8,8 +8,8 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from db_manager import DatabaseManager
-from postmates_link_scraper import PostmatesScraper  # adjust path if needed
+from common.db_manager import DatabaseManager
+from scraper.postmates_link_scraper import PostmatesScraper  # adjust path if needed
 
 
 DB_CONFIG = {

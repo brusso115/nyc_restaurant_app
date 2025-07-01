@@ -3,8 +3,8 @@ import random
 import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-from db_manager import DatabaseManager
-from tasks import scrape_restaurant_task
+from common.db_manager import DatabaseManager
+from celery_workers.tasks import scrape_restaurant_task
 from playwright.async_api import Page
 
 class PostmatesScraper:
@@ -115,8 +115,8 @@ if __name__ == "__main__":
     db = DatabaseManager(DB_CONFIG)
 
     locations = [
-        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
-        # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
+        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},
         # {"address": "Harlem, New York City, New York", "latitude": 40.8116, "longitude": -73.9465},
