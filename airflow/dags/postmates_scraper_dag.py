@@ -1,5 +1,8 @@
-import sys
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+import sys
 import time
 import asyncio
 from datetime import datetime, timedelta
@@ -11,12 +14,11 @@ from airflow.operators.python import PythonOperator
 from common.db_manager import DatabaseManager
 from scraper.postmates_link_scraper import PostmatesScraper  # adjust path if needed
 
-
 DB_CONFIG = {
-    "dbname": "restaurant_data",
-    "user": "baileyrusso",
-    "host": "localhost",
-    "port": "5432"
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT")
 }
 
 # Locations to scrape (in order)

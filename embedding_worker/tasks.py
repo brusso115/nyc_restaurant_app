@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
 from common.db_manager import DatabaseManager
 import traceback
 import chromadb
@@ -7,7 +11,7 @@ import threading
 from celery import Celery
 import os
 
-app = Celery("embedding_worker", broker="redis://localhost:6379/0")
+app = Celery("embedding_worker", broker=os.getenv("CELERY_BROKER_URL"))
 
 app.conf.task_routes = {
     "embedding_worker.tasks.embed_menu_items_task": {"queue": "embedding_queue"}
@@ -15,19 +19,25 @@ app.conf.task_routes = {
 
 app.conf.broker_connection_retry_on_startup = True 
 
+DB_CONFIG = {
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT")
+}
+
+CHROMA_PATH = os.path.abspath(
+    os.getenv("CHROMA_PATH", os.path.join(os.path.dirname(__file__), "../chroma_db"))
+)
+
+MODEL_PATH = os.path.abspath(
+    os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), "sentence_transformer_model"))
+)
+
 sentence_model = None
 chromadb_client = None
 _model_lock = threading.Lock()
 
-DB_CONFIG = {
-    "dbname": "restaurant_data",
-    "user": "baileyrusso",
-    "host": "localhost",
-    "port": "5432"
-}
-
-CHROMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../chroma_db"))
-MODEL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "sentence_transformer_model"))
 
 def ensure_model_loaded():
     global sentence_model

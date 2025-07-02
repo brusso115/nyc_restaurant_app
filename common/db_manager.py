@@ -6,13 +6,6 @@ from dataclasses import astuple
 from psycopg2.extras import execute_values
 from typing import Optional
 
-DB_CONFIG = {
-    "dbname": "restaurant_data",
-    "user": "baileyrusso",
-    "host": "localhost",
-    "port": "5432"
-}
-
 class DatabaseManager:
     def __init__(self, DB_CONFIG):
         self.conn = psycopg2.connect(**DB_CONFIG)

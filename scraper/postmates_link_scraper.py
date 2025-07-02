@@ -1,3 +1,15 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+DB_CONFIG = {
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT")
+}
+
 import asyncio
 import random
 import pandas as pd
@@ -105,18 +117,11 @@ class PostmatesScraper:
 # Example usage
 if __name__ == "__main__":
 
-    DB_CONFIG = {
-        "dbname": "restaurant_data",
-        "user": "baileyrusso",
-        "host": "localhost",
-        "port": "5432"
-    }
-
     db = DatabaseManager(DB_CONFIG)
 
     locations = [
-        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
-        # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
+        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},
         # {"address": "Harlem, New York City, New York", "latitude": 40.8116, "longitude": -73.9465},

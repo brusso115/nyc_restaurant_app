@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
 from common.db_manager import DatabaseManager
 import traceback
 import requests
@@ -9,7 +14,7 @@ import html
 from celery import Celery
 from embedding_worker.tasks import embed_menu_items_task 
 
-app = Celery("scraper_worker", broker="redis://localhost:6379/0")
+app = Celery("scraper_worker", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"))
 
 app.conf.task_routes = {
     "scraper_worker.tasks.scrape_restaurant_task": {"queue": "scraper_queue"}
@@ -18,10 +23,10 @@ app.conf.task_routes = {
 app.conf.broker_connection_retry_on_startup = True 
 
 DB_CONFIG = {
-    "dbname": "restaurant_data",
-    "user": "baileyrusso",
-    "host": "localhost",
-    "port": "5432"
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT")
 }
 
 def parse_json_ld(url: str) -> dict:
