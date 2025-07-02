@@ -4,6 +4,7 @@ from datetime import datetime
 from common.models import Restaurant, MenuItem, RestaurantHours
 from dataclasses import astuple
 from psycopg2.extras import execute_values
+from typing import Optional
 
 DB_CONFIG = {
     "dbname": "restaurant_data",
@@ -205,7 +206,7 @@ class DatabaseManager:
             }
         return None
     
-    def get_restaurant_by_id(self, restaurant_id: int) -> dict | None:
+    def get_restaurant_by_id(self, restaurant_id: int) -> Optional[dict]:
         """Fetch restaurant info by ID."""
         self.cur.execute("""
             SELECT id, name, address

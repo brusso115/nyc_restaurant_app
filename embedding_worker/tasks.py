@@ -7,7 +7,7 @@ import threading
 from celery import Celery
 import os
 
-app = Celery("embedder_worker", broker="redis://localhost:6379/0")
+app = Celery("embedding_worker", broker="redis://localhost:6379/0")
 
 app.conf.task_routes = {
     "embedding_worker.tasks.embed_menu_items_task": {"queue": "embedding_queue"}
@@ -16,6 +16,7 @@ app.conf.task_routes = {
 app.conf.broker_connection_retry_on_startup = True 
 
 sentence_model = None
+chromadb_client = None
 _model_lock = threading.Lock()
 
 DB_CONFIG = {
@@ -45,8 +46,8 @@ def embed_items(db: DatabaseManager, items: list[dict], link_id: int):
     texts = [item["text"] for item in items]
     embeddings = sentence_model.encode(texts, show_progress_bar=True)
 
-    client = chromadb.PersistentClient(path=CHROMA_PATH, tenant="default_tenant")
-    collection = client.get_or_create_collection("menu_items")
+    chromadb_client = chromadb.PersistentClient(path=CHROMA_PATH, tenant="default_tenant")
+    collection = chromadb_client.get_or_create_collection("menu_items")
 
     collection.add(
         documents=texts,
@@ -71,6 +72,7 @@ def embed_items(db: DatabaseManager, items: list[dict], link_id: int):
 def embed_menu_items_task(menu_item_ids, link_id):
 
     ensure_model_loaded()
+
     db = DatabaseManager(DB_CONFIG)
 
     try: 
