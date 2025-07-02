@@ -19,8 +19,8 @@ echo "🧼 Flushing Redis..."
 redis-cli FLUSHALL || echo "⚠️ Failed to flush Redis"
 
 echo "🧯 Purging Celery queues..."
-celery -A scraper_worker.tasks purge -f || echo "⚠️ Failed to purge scraper queue"
-celery -A embedding_worker.tasks purge -f || echo "⚠️ Failed to purge embedding queue"
+celery -A scraper_worker.tasks purge -Q scraper_queue -f || echo "⚠️ Failed to purge scraper queue"
+celery -A embedding_worker.tasks purge -Q embedding_queue -f || echo "⚠️ Failed to purge embedding queue"
 
 echo "🔪 Killing Celery workers..."
 pkill -f "celery -A scraper_worker.tasks" || echo "⚠️ No scraper workers running"
