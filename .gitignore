@@ -3,6 +3,7 @@ restaurant-recommender-env/
 sentence_transformer_model/
 *.rdb
 notes.txt
+*.env
 
 embedding_worker/sentence_transformer_model/
 
