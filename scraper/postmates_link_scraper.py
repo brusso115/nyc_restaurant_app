@@ -16,7 +16,6 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from common.db_manager import DatabaseManager
-# from scraper_worker.tasks import scrape_restaurant_task
 from playwright.async_api import Page
 from celery import Celery
 
