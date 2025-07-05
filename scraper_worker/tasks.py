@@ -12,7 +12,6 @@ import time
 import random
 import html
 from celery import Celery
-from embedding_worker.tasks import embed_menu_items_task 
 
 app = Celery("scraper_worker", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"))
 
@@ -73,7 +72,17 @@ def scrape_restaurant_task(url, sleep_min=1.5, sleep_max=3.0):
         item_ids = [row[0] for row in db.get_unembedded_menu_items_by_restaurant_id(restaurant_id)]
 
         if item_ids:
-            embed_menu_items_task.delay(item_ids, link_id)
+            
+            try:
+                result = app.send_task(
+                    "embedding_worker.tasks.embed_menu_items_task",
+                    args=[item_ids, link_id],
+                    queue="embedding_queue"
+                )
+                print(f"🚀 Enqueued embedding task {result.id}")
+            except Exception as e:
+                print(f"❌ Failed to enqueue embedding task: {e}")
+
         else:
             print(f"⚠️ No unembedded items for {url}")
 
