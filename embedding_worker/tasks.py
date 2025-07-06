@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
-
 from common.db_manager import DatabaseManager
 import traceback
 import chromadb
@@ -26,13 +23,8 @@ DB_CONFIG = {
     "port": os.getenv("DB_PORT")
 }
 
-CHROMA_PATH = os.path.abspath(
-    os.getenv("CHROMA_PATH", os.path.join(os.path.dirname(__file__), "../chroma_db"))
-)
-
-MODEL_PATH = os.path.abspath(
-    os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), "sentence_transformer_model"))
-)
+CHROMA_PATH = os.environ["CHROMA_PATH"]
+MODEL_PATH = os.environ["MODEL_PATH"]
 
 sentence_model = None
 chromadb_client = None

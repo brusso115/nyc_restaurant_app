@@ -1,0 +1,115 @@
+version: "3.9"
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.1-python3.10
+  environment:
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./common:/opt/airflow/common
+    - ./scraper:/opt/airflow/scraper
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    - redis
+    - postgres
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app-db:
+    image: postgres:15
+    container_name: app-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: restaurant_data
+      POSTGRES_USER: baileyrusso
+      POSTGRES_PASSWORD: yourpassword
+    volumes:
+      - app_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: >
+      bash -c "airflow db migrate && \
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+    restart: on-failure
+
+  airflow-webserver:
+    <<: *airflow-common
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker
+    depends_on:
+      - airflow-init
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+
+  scraper-service:
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    volumes:
+      - ./common:/app/common
+    env_file: ./scraper/.env
+    depends_on:
+      - redis
+      - app-db
+
+  scraper-worker:
+    build:
+      context: ./scraper_worker
+      dockerfile: Dockerfile
+    volumes:
+      - ./common:/app/common
+    env_file: ./scraper_worker/.env
+    command: celery -A tasks worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue
+    depends_on:
+      - redis
+      - app-db
+
+  embedding-worker:
+    build:
+      context: ./embedding_worker
+      dockerfile: Dockerfile
+    volumes:
+      - ./common:/app/common
+      - ./embedding_worker/sentence_transformer_model:/app/sentence_transformer_model
+      - ./chroma_db:/app/chroma_db 
+    env_file: ./embedding_worker/.env
+    command: celery -A tasks worker --loglevel=info --concurrency=4 --pool=threads --queues=embedding_queue
+    depends_on:
+      - redis
+      - app-db
+
+volumes:
+  postgres_data:
+  app_postgres_data:
