@@ -7,7 +7,7 @@ import time
 import asyncio
 from datetime import datetime, timedelta
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+sys.path.append("/opt/airflow")
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator

@@ -7,8 +7,25 @@ notes.txt
 
 embedding_worker/sentence_transformer_model/
 
-# Airflow runtime files
-airflow/*
+# Airflow runtime
+airflow/__pycache__/
+airflow/*.db
+airflow/logs/
+airflow/tmp/
+airflow/*.pid
+airflow/*.log
+airflow/*.cfg
+airflow/standalone_admin_password.txt
+airflow/webserver_config.py
+
+# Keep Airflow source files
+!airflow/Dockerfile
+!airflow/requirements.txt
+!airflow/dags/
+
+# Docker
+!.dockerignore
+!*/.dockerignore
 
 # Keep the dags folder and Python files inside it
 !airflow/dags/
