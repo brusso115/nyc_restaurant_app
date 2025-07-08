@@ -1,28 +1,39 @@
-name: Build Airflow-Driven Images
+name: Build Scraper Service and Airflow Images
 
 on:
   push:
     paths:
       - 'airflow/**'
+      - 'scraper/**'
       - 'common/**'
-      - '.github/workflows/airflow.yml'
+      - '.github/workflows/airflow-scraper.yml'
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to GHCR
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Scraper image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: scraper/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/scraper-service:latest
 
       - name: Build and push Airflow image
         uses: docker/build-push-action@v5
@@ -31,11 +42,3 @@ jobs:
           file: airflow/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/airflow:latest
-
-      - name: Build and push Scraper Service image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: scraper/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/scraper-service:latest
