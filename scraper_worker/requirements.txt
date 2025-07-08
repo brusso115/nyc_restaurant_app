@@ -1,3 +1,5 @@
 requests
 beautifulsoup4
 celery
+psycopg2-binary
+redis

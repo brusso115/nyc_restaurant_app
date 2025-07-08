@@ -4,12 +4,12 @@ DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER"),
     "host": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT")
+    "port": os.getenv("DB_PORT"),
+    "password": os.getenv("DB_PASSWORD"),
 }
 
 import asyncio
 import random
-import pandas as pd
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from common.db_manager import DatabaseManager
@@ -103,7 +103,7 @@ class PostmatesScraper:
     async def scrape(self):
         async with async_playwright() as p:
 
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
 
             try:
                 context = await browser.new_context(
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     db = DatabaseManager(DB_CONFIG)
 
     locations = [
-        {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
+        # {"address": "Madison Square Garden, New York City, New York", "latitude": 40.7505, "longitude": -73.9934},
         # {"address": "Times Square, New York City, New York", "latitude": 40.7580, "longitude": -73.9855},
         # {"address": "Union Square, New York City, New York", "latitude": 40.7359, "longitude": -73.9911},
         # {"address": "World Trade Center, New York City, New York", "latitude": 40.7127, "longitude": -74.0134},

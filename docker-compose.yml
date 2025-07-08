@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-airflow-common: &airflow-common
   image: apache/airflow:2.9.1-python3.10
   environment:
@@ -11,6 +9,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+    AIRFLOW__WEBSERVER__SECRET_KEY: '1P9EDytz9E6Z3MXQpRKLIS0bgDuOEl9s5DSK30lkNqQ'
+    AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./common:/opt/airflow/common
@@ -54,29 +54,45 @@ services:
     restart: on-failure
 
   airflow-webserver:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     <<: *airflow-common
     ports:
       - "8080:8080"
     command: webserver
+    env_file:  ./airflow/.env
 
   airflow-scheduler:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     <<: *airflow-common
     command: scheduler
+    env_file:  ./airflow/.env
 
   airflow-worker:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     <<: *airflow-common
     command: celery worker
+    env_file:  ./airflow/.env
     depends_on:
       - airflow-init
 
   airflow-triggerer:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     <<: *airflow-common
     command: triggerer
+    env_file:  ./airflow/.env
 
   scraper-service:
     build:
-      context: ./scraper
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: scraper/Dockerfile
     volumes:
       - ./common:/app/common
     env_file: ./scraper/.env
@@ -86,8 +102,8 @@ services:
 
   scraper-worker:
     build:
-      context: ./scraper_worker
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: scraper_worker/Dockerfile
     volumes:
       - ./common:/app/common
     env_file: ./scraper_worker/.env
@@ -98,8 +114,8 @@ services:
 
   embedding-worker:
     build:
-      context: ./embedding_worker
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: embedding_worker/Dockerfile
     volumes:
       - ./common:/app/common
       - ./embedding_worker/sentence_transformer_model:/app/sentence_transformer_model

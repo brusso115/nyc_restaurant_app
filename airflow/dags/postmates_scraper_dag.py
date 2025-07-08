@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
-
 import sys
 import time
 import asyncio
@@ -18,7 +15,8 @@ DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER"),
     "host": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT")
+    "port": os.getenv("DB_PORT"),
+    "password": os.getenv("DB_PASSWORD"),
 }
 
 # Locations to scrape (in order)

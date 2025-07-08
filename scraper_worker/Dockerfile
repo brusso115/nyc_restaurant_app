@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY scraper_worker/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
 
 COPY scraper_worker/ /app
 COPY /common /app/common

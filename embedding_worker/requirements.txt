@@ -5,3 +5,4 @@ posthog==4.4.0
 numpy<2.0
 typing_extensions>=4.7
 redis
+psycopg2-binary

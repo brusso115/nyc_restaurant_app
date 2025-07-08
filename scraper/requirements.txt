@@ -1,5 +1,5 @@
-pandas
 beautifulsoup4
 playwright
 redis
 celery
+psycopg2-binary
