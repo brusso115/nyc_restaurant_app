@@ -60,7 +60,7 @@ def scrape_location(location):
     asyncio.run(scraper.scrape())
 
 def wait_one_hour():
-    time.sleep(1800)
+    time.sleep(2700)
 
 previous_scrape = None
 for i, loc in enumerate(locations):
