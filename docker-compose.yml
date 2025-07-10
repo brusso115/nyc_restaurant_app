@@ -87,8 +87,6 @@ services:
 
   scraper-service:
     image: ghcr.io/brusso115/scraper-service:latest
-    volumes:
-      - ./common:/app/common
     env_file: ./scraper/.env
     depends_on:
       - redis
@@ -96,8 +94,6 @@ services:
 
   scraper-worker:
     image: ghcr.io/brusso115/scraper-worker:latest
-    volumes:
-      - ./common:/app/common
     env_file: ./scraper_worker/.env
     command: celery -A tasks worker --loglevel=info --concurrency=1 --pool=threads --queues=scraper_queue
     depends_on:
@@ -107,9 +103,7 @@ services:
   embedding-worker:
     image: ghcr.io/brusso115/embedding-worker:latest
     volumes:
-      - ./common:/app/common
-      - ./embedding_worker/sentence_transformer_model:/app/sentence_transformer_model
-      - ./chroma_db:/app/chroma_db 
+      - ./chroma_db:/app/chroma_db
     env_file: ./embedding_worker/.env
     command: celery -A tasks worker --loglevel=info --concurrency=4 --pool=threads --queues=embedding_queue
     depends_on:
