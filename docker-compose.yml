@@ -11,6 +11,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
     AIRFLOW__WEBSERVER__SECRET_KEY: '1P9EDytz9E6Z3MXQpRKLIS0bgDuOEl9s5DSK30lkNqQ'
     AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
+    AIRFLOW__SCHEDULER__SCHEDULER_ZOMBIE_TASK_THRESHOLD: 300
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./common:/opt/airflow/common
@@ -29,6 +30,8 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
 
   app-db:
     image: postgres:15
