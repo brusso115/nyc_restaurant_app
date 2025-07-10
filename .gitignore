@@ -4,6 +4,7 @@ sentence_transformer_model/
 *.rdb
 notes.txt
 *.env
+**/venv/
 
 embedding_worker/sentence_transformer_model/
 
