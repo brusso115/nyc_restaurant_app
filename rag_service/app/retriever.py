@@ -1,7 +1,7 @@
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-from app.config import settings
+from .config import settings
 
 embedding_model = HuggingFaceEmbeddings(model_name=settings.model_name)
 vectorstore = Chroma(

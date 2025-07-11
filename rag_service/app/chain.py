@@ -1,6 +1,6 @@
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from app.llm import llm
+from .llm import llm
 
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],

@@ -1,5 +1,5 @@
 from langchain_ollama import OllamaLLM
-from app.config import settings
+from .config import settings
 
 llm = OllamaLLM(
     model=settings.ollama_model,

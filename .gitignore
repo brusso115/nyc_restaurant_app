@@ -5,6 +5,7 @@ sentence_transformer_model/
 notes.txt
 *.env
 **/venv/
+**/api-venv/
 
 embedding_worker/sentence_transformer_model/
 
@@ -34,6 +35,7 @@ airflow/webserver_config.py
 
 # Python junk
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.egg-info/
