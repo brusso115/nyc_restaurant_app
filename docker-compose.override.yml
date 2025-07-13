@@ -91,3 +91,35 @@ services:
     depends_on:
       - redis
       - app-db
+
+  query-api:
+    build:
+      context: .
+      dockerfile: query_api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./query_api:/app/query_api
+      - ./rag_service:/app/rag_service
+      - ./embedding_worker/sentence_transformer_model:/app/sentence_transformer_model
+    command: uvicorn query_api.app.main:app --reload --host 0.0.0.0 --port 8000
+    depends_on:
+      - app-db
+    env_file:
+      - ./query_api/.env
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    volumes:
+    - ./frontend:/app
+    - /app/node_modules
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    depends_on:
+      - query-api
+    env_file:
+      - ./frontend/.env
+

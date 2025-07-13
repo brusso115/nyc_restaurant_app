@@ -1,8 +1,0 @@
-langchain-chroma
-langchain-huggingface
-pydantic-settings
-sentence-transformers
-numpy<2.0
-langchain
-langchain-ollama
-protobuf<4,>=3.20.0

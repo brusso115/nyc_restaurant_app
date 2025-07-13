@@ -110,7 +110,7 @@ services:
     depends_on:
       - redis
       - app-db
-
+  
 volumes:
   postgres_data:
   app_postgres_data:
