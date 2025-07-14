@@ -16,7 +16,7 @@ function RestaurantMap() {
   }, [])
 
   return (
-    <MapContainer center={[40.73, -73.98]} zoom={13} className="map-container">
+    <MapContainer center={[40.73, -73.98]} zoom={13} className="map-container" style={{ height: '100%', width: '100%' }}>
       <TileLayer
         url={`https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`}
         tileSize={512}
@@ -24,7 +24,14 @@ function RestaurantMap() {
         attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
       />
       {restaurants.map((r) => (
-        <Marker key={r.id} position={[r.latitude, r.longitude]}>
+        <Marker
+          key={r.id}
+          position={[r.latitude, r.longitude]}
+          icon={L.divIcon({
+            className: 'custom-marker',
+            iconSize: [16, 16],
+          })}
+        >
           <Popup>{r.name}</Popup>
         </Marker>
       ))}

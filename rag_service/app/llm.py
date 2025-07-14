@@ -3,6 +3,7 @@ from .config import settings
 
 llm = OllamaLLM(
     model=settings.ollama_model,
+    base_url="http://host.docker.internal:11434",
     temperature=0.7,
     top_p=0.9,
     top_k=40,

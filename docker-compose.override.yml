@@ -102,6 +102,7 @@ services:
       - ./query_api:/app/query_api
       - ./rag_service:/app/rag_service
       - ./embedding_worker/sentence_transformer_model:/app/sentence_transformer_model
+      - ./chroma_db:/app/chroma_db
     command: uvicorn query_api.app.main:app --reload --host 0.0.0.0 --port 8000
     depends_on:
       - app-db

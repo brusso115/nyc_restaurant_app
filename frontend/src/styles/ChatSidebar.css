@@ -1,0 +1,24 @@
+.chat-sidebar {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.chat-history {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 0.5rem;
+}
+
+.chat-message {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.chat-message ul {
+  padding-left: 1rem;
+}

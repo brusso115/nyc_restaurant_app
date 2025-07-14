@@ -1,28 +1,27 @@
+import '../styles/Home.css'
 import RestaurantMap from '../components/RestaurantMap'
-import QueryInput from '../components/QueryInput'
+import ChatSidebar from '../components/ChatSidebar'
 import { useState } from 'react'
 
 function Home() {
+  const [chatHistory, setChatHistory] = useState([])
   const [response, setResponse] = useState(null)
 
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>NYC Restaurant Explorer</h1>
-      <QueryInput onResult={setResponse} />
-      <RestaurantMap />
+  const handleQueryResult = (result) => {
+    setChatHistory([...chatHistory, result])
+    setResponse(result)
+  }
 
-      {response && (
-        <div style={{ marginTop: '2rem' }}>
-          <h2>Answer</h2>
-          <p>{response.answer}</p>
-          <h3>Source Menu Items</h3>
-          <ul>
-            {response.sources.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
+  return (
+    <div className="home-page">
+      <div className="main-layout">
+        <div className="map-container">
+          <RestaurantMap />
         </div>
-      )}
+        <div className="chat-container">
+          <ChatSidebar chatHistory={chatHistory} onQuery={handleQueryResult} />
+        </div>
+      </div>
     </div>
   )
 }
