@@ -8,15 +8,32 @@ class RestaurantAPIData:
 
     def fetch_all_restaurants(self):
         self.cur.execute("""
-            SELECT id, name, latitude, longitude
-            FROM restaurants
-            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            SELECT r.id, r.name, r.latitude, r.longitude, c.name
+            FROM restaurants r
+            JOIN restaurant_categories rc ON r.id = rc.restaurant_id
+            JOIN categories c ON rc.category_id = c.id
+            WHERE r.latitude IS NOT NULL AND r.longitude IS NOT NULL
         """)
         rows = self.cur.fetchall()
-        return [
-            {"id": r[0], "name": r[1], "latitude": r[2], "longitude": r[3]}
-            for r in rows
-        ]
+
+        restaurants = {}
+        for r_id, name, lat, lng, category in rows:
+            if r_id not in restaurants:
+                restaurants[r_id] = {
+                    "id": r_id,
+                    "name": name,
+                    "latitude": lat,
+                    "longitude": lng,
+                    "categories": []
+                }
+            restaurants[r_id]["categories"].append(category)
+
+        return list(restaurants.values())
+    
+    def fetch_all_categories(self):
+        self.cur.execute("SELECT name FROM categories ORDER BY name")
+        rows = self.cur.fetchall()
+        return [{"name": row[0]} for row in rows]
 
     def close(self):
         self.cur.close()

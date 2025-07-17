@@ -13,3 +13,9 @@ export async function runQuery(query) {
   if (!res.ok) throw new Error('Failed to run query')
   return res.json()
 }
+
+export async function fetchCategories() {
+  const res = await fetch('/categories')
+  if (!res.ok) throw new Error('Failed to fetch categories')
+  return res.json()
+}

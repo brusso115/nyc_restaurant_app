@@ -6,3 +6,15 @@
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
   transform: translate(-50%, -50%);
 }
+
+.restaurant-map-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-wrapper {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+}

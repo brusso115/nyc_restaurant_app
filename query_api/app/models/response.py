@@ -10,3 +10,8 @@ class RestaurantResponse(BaseModel):
     name: str
     latitude: float
     longitude: float
+    categories: list
+
+
+class CategoryResponse(BaseModel):
+    name: str

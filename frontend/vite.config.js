@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/query': 'http://query-api:8000',
       '/restaurants': 'http://query-api:8000',
+      '/categories': 'http://query-api:8000'
     }
   }
 })
