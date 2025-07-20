@@ -29,8 +29,18 @@ def run_rag_pipeline(query: str, filters: dict = {}, history: list = []) -> dict
         "context": "\n".join([doc.page_content for doc in docs])
     })
 
-    return {
-        "answer": result['text'], 
-        "sources": [doc.metadata["restaurant_name"] for doc in docs]
-    }
 
+    answer = result['text']
+    sources = [doc.metadata["restaurant_name"] for doc in docs]
+
+    updated_history = history + [{
+        "query": query,
+        "response": answer,
+        "sources": sources
+    }]
+
+    return {
+        "answer": answer,
+        "sources": sources,
+        "history": updated_history
+    }

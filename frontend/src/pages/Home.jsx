@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { runQueryWithHistory } from '../services/api'
 
 function Home() {
+
   const [chatHistory, setChatHistory] = useState([])
 
   const handleQuerySubmit = async (query) => {
@@ -12,12 +13,7 @@ function Home() {
     try {
       const result = await runQueryWithHistory(query, chatHistory)
       console.log("✅ Received result:", result)
-      const newTurn = {
-        query: String(query),
-        response: result.answer,
-        sources: Array.isArray(result.sources) ? result.sources.map(String) : []
-      }
-      setChatHistory(prev => [...prev, newTurn])
+      setChatHistory(result.history)
     } catch (err) {
       console.error('Server error:', err)
     }
