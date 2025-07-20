@@ -2,14 +2,25 @@ import '../styles/Home.css'
 import RestaurantMap from '../components/RestaurantMap'
 import ChatSidebar from '../components/ChatSidebar'
 import { useState } from 'react'
+import { runQueryWithHistory } from '../services/api'
 
 function Home() {
   const [chatHistory, setChatHistory] = useState([])
-  const [response, setResponse] = useState(null)
 
-  const handleQueryResult = (result) => {
-    setChatHistory([...chatHistory, result])
-    setResponse(result)
+  const handleQuerySubmit = async (query) => {
+    console.log("📤 Submitting query:", query)
+    try {
+      const result = await runQueryWithHistory(query, chatHistory)
+      console.log("✅ Received result:", result)
+      const newTurn = {
+        query: String(query),
+        response: result.answer,
+        sources: Array.isArray(result.sources) ? result.sources.map(String) : []
+      }
+      setChatHistory(prev => [...prev, newTurn])
+    } catch (err) {
+      console.error('Server error:', err)
+    }
   }
 
   return (
@@ -19,7 +30,7 @@ function Home() {
           <RestaurantMap />
         </div>
         <div className="chat-container">
-          <ChatSidebar chatHistory={chatHistory} onQuery={handleQueryResult} />
+          <ChatSidebar chatHistory={chatHistory} onQuerySubmit={handleQuerySubmit} />
         </div>
       </div>
     </div>

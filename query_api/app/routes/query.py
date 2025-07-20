@@ -7,5 +7,6 @@ router = APIRouter()
 
 @router.post("", response_model=QueryResponse)
 def query_endpoint(request: QueryRequest):
-    result = query_rag(query=request.query, filters=request.filters or {})
+    result = query_rag(query=request.query, filters=request.filters or {}, history=request.history or [])
+    print(result)
     return result

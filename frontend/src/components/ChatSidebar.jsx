@@ -1,7 +1,7 @@
 import QueryInput from './QueryInput'
 import '../styles/ChatSidebar.css'
 
-function ChatSidebar({ chatHistory, onQuery }) {
+function ChatSidebar({ chatHistory, onQuerySubmit }) {
   return (
     <div className="chat-sidebar">
       <div className="chat-history">
@@ -9,7 +9,7 @@ function ChatSidebar({ chatHistory, onQuery }) {
         <ul>
           {chatHistory.map((msg, i) => (
             <li key={i} className="chat-message">
-              <strong>Answer:</strong> {msg.answer}
+              <strong>Answer:</strong> {msg.response}
               <br />
               <strong>Sources:</strong>
               <ul>
@@ -19,7 +19,7 @@ function ChatSidebar({ chatHistory, onQuery }) {
           ))}
         </ul>
       </div>
-      <QueryInput onResult={onQuery} />
+      <QueryInput onQuerySubmit={onQuerySubmit} />
     </div>
   )
 }

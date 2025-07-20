@@ -13,10 +13,24 @@ class StaticRetriever(BaseRetriever):
     ) -> List[Document]:
         return self.docs
 
-def run_rag_pipeline(query: str, filters: dict = {}) -> dict:
+def run_rag_pipeline(query: str, filters: dict = {}, history: list = []) -> dict:
     docs = get_enriched_docs(query)
-    retriever = StaticRetriever(docs=docs)
-    chain = build_chain(retriever)
-    result = chain.invoke({"query": query})
 
-    return result
+    chat_history_text = ""
+
+    for turn in history:
+        chat_history_text += f"User: {turn.query}\nBot: {turn.response}\n"
+
+    chain = build_chain()
+
+    result = chain.invoke({
+        "query": query,
+        "chat_history": chat_history_text.strip(),
+        "context": "\n".join([doc.page_content for doc in docs])
+    })
+
+    return {
+        "answer": result['text'], 
+        "sources": [doc.metadata["restaurant_name"] for doc in docs]
+    }
+

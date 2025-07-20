@@ -1,21 +1,18 @@
 import { useState } from 'react'
-import { runQuery } from '../services/api'
 
-function QueryInput({ onResult }) {
+function QueryInput({ onQuerySubmit }) {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!query.trim()) return
     setLoading(true)
-    try {
-      const result = await runQuery(query)
-      onResult(result)
-    } catch (err) {
-      console.error(err)
-      onResult({ answer: 'Server error', sources: [] })
-    }
+
+    await onQuerySubmit(query)
+
     setLoading(false)
+    setQuery('')
   }
 
   return (
