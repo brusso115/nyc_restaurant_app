@@ -6,7 +6,7 @@ class QueryTurn(BaseModel):
     response: str
     sources: Optional[List[str]] = []
 
-class QueryRequest(BaseModel):
+class MCPRequest(BaseModel):
     query: str
     filters: Optional[Dict[str, float]] = None
     history: Optional[List[QueryTurn]] = []

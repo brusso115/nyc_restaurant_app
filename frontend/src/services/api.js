@@ -19,7 +19,7 @@ export async function runQueryWithHistory(query, history = []) {
     history: cleanedHistory
   }
 
-  const res = await fetch('/query', {
+  const res = await fetch('/mcp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)

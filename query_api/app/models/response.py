@@ -6,7 +6,7 @@ class QueryTurn(BaseModel):
     response: str
     sources: List[str]
 
-class QueryResponse(BaseModel):
+class MCPResponse(BaseModel):
     answer: str
     sources: List[str]
     history: List[QueryTurn]

@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/query': 'http://query-api:8000',
+      '/mcp': 'http://query-api:8000',
       '/restaurants': 'http://query-api:8000',
       '/categories': 'http://query-api:8000'
     }
