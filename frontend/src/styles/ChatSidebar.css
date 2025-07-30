@@ -1,24 +1,24 @@
-.chat-sidebar {
-  flex: 1;
-  border-left: 1px solid #ccc;
-  padding-left: 1rem;
+.query-input {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
+  padding: 8px;
+  border-top: 1px solid #ccc;
 }
 
-.chat-history {
-  overflow-y: auto;
-  flex-grow: 1;
-  padding-right: 0.5rem;
+.query-input input {
+  flex: 1;
+  padding: 6px;
+  margin-right: 4px;
 }
 
-.chat-message {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+.query-input button {
+  padding: 6px 12px;
 }
 
-.chat-message ul {
-  padding-left: 1rem;
+.chat-message.user {
+  color: #1d72b8;
+}
+
+.chat-message.assistant {
+  color: #444;
+  margin-bottom: 0.5em;
 }

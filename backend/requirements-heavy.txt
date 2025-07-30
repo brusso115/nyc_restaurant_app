@@ -1,0 +1,7 @@
+langchain
+langchain-community
+langchain-ollama
+langgraph>=0.0.34
+sentence-transformers==2.2.2
+numpy<2.0
+protobuf<4,>=3.20.0
