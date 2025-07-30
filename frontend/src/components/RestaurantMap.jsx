@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { fetchRestaurants, fetchCategories } from '../services/api'
 import CategoryDropdown from './CategoryDropdown'
 import 'leaflet/dist/leaflet.css'

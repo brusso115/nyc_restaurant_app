@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from typing import List
 from ..models.response import CategoryResponse
-from query_api.app.db.api_db import RestaurantAPIData
+from backend.app.db.api_db import RestaurantAPIData
 
 router = APIRouter()
 
