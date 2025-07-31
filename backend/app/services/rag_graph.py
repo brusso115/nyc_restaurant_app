@@ -1,9 +1,11 @@
 from ..services.chroma_tool import get_similar_menu_items
 from langgraph.graph import StateGraph, END
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
+from langchain_core.messages import SystemMessage
 from ..services.chroma_tool import get_similar_menu_items
 from typing import TypedDict
+import os
 
 class ChatState(TypedDict):
     messages: list[BaseMessage]
@@ -16,15 +18,50 @@ def should_query_chroma(state):
 
 # Node for regular chat
 def just_chat(state):
-    llm = ChatOpenAI(model="gpt-4", temperature=0.3)
+    llm = ChatOpenAI(
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        base_url="https://api.together.xyz/v1",
+        api_key=os.getenv("TOGETHER_API_KEY"),
+        temperature=0.3
+    )
     response = llm.invoke(state["messages"])
     return {"messages": state["messages"] + [response]}
 
 # Node that queries ChromaDB
 def use_chroma(state):
     query = state["messages"][-1].content
-    results = get_similar_menu_items(query)
-    response = AIMessage(content=results)
+    menu_matches = get_similar_menu_items(query)
+
+    print(menu_matches)
+
+    llm = ChatOpenAI(
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        base_url="https://api.together.xyz/v1",
+        api_key=os.getenv("TOGETHER_API_KEY"),
+        temperature=0.3
+    )
+
+    system_prompt = SystemMessage(
+        content=(
+            "You are a friendly restaurant assistant. Based on the user's craving and a list of matching menu items, "
+            "recommend dishes from the **given list only**. Do not make up dishes or restaurants not found in the list. "
+            "Respond in a natural, conversational tone. Include the restaurant name and address from the provided items. "
+            "Do not list the raw menu items — instead, rewrite them as recommendations."
+        )
+    )
+
+    assistant_context = AIMessage(
+        content=f"The following menu items were retrieved based on the user's query:\n{menu_matches}"
+    )
+
+    messages = [
+        system_prompt,
+        HumanMessage(content=query),
+        assistant_context
+    ]
+
+    response = llm.invoke(messages)
+
     return {"messages": state["messages"] + [response]}
 
 # Identity router node (to enable branching)

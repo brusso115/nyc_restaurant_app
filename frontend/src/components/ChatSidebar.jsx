@@ -1,24 +1,26 @@
 import { useState } from 'react'
 import QueryInput from './QueryInput'
+import { sendChatMessage } from '../services/api'
 import '../styles/ChatSidebar.css'
 
 function ChatSidebar() {
   const [history, setHistory] = useState([])
 
   const handleSend = async (userMessage) => {
-    const updated = [...history, { role: 'user', content: userMessage }]
-
-    const res = await fetch('/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: userMessage,
-        history: updated
-      })
-    })
-
-    const data = await res.json()
-    setHistory([...updated, { role: 'assistant', content: data.response }])
+    const updatedHistory = [...history, { role: 'user', content: userMessage }]
+    try {
+      const data = await sendChatMessage(userMessage, updatedHistory)
+      setHistory([
+        ...updatedHistory,
+        { role: 'assistant', content: data.response }
+      ])
+    } catch (err) {
+      console.error(err)
+      setHistory([
+        ...updatedHistory,
+        { role: 'assistant', content: "Sorry, something went wrong." }
+      ])
+    }
   }
 
   return (

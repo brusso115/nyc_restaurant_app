@@ -4,3 +4,4 @@ pydantic>=2.0
 pydantic-settings
 psycopg2-binary
 chromadb
+openai
